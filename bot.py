@@ -3,7 +3,7 @@ import logging
 import breed
 import config
 from time import time
-import telegram
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, ConversationHandler, Filters)
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
@@ -33,7 +33,12 @@ def photo(update, context):
 
     DogBreed = breed.resolve(filepath)
     os.system('rm -rf '+filepath)
-    update.message.reply_text(DogBreed)
+
+    keyboard = [
+            [InlineKeyboardButton("Примеры пород", callback_data="show"),]
+            ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text(DogBreed, reply_markup=reply_markup)
 
 def cancel(update, context):
     return ConversationHandler.END
