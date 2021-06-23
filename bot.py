@@ -51,10 +51,14 @@ def photo(update, context):
             [InlineKeyboardButton("Примеры пород", callback_data="/show"),]
             ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(DogBreed, reply_markup=reply_markup)
+    result_message = update.message.reply_text(DogBreed, reply_markup=reply_markup)
+    print(result_message['message_id'])
 
 def cancel(update, context):
     return ConversationHandler.END
+
+def show(update, context):
+    print(update['callback_query']['message']['message_id'])
 
 def main():
     updater = Updater(config.TOKEN, use_context=True)
@@ -64,6 +68,7 @@ def main():
 
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("cancel", cancel))
+    dp.add_handler(CallbackQueryHandler(show))
     dp.add_handler(photo_handler)
     dp.add_error_handler(error)
 
