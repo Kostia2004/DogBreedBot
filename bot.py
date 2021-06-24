@@ -36,29 +36,44 @@ def photo(update, context):
     name = str(time())+ ".jpg"
     if not (str(id) in os.listdir(path="./user_data/")):
         os.system("mkdir ./user_data/"+str(id))
-    filepath = "./user_data/" + str(id) + "/" + name
+    filepath = "./user_data/" + str(id) + "/"
+    filename = "./user_data/" + str(id) + "/" + name
 
     print("получение")
     largest_photo = update.message.photo[-1].get_file()
     print("скачивание")
-    largest_photo.download(filepath)
+    largest_photo.download(filename)
     print("завершено")
 
-    DogBreed = get_breed(breed.resolve(filepath))
-    os.system('rm -rf '+filepath)
+    breedsdata = breed.resolve(filename)
+    DogBreed = get_breed(breedsdata)
+    os.system('rm -rf '+filename)
 
     keyboard = [
             [InlineKeyboardButton("Примеры пород", callback_data="/show"),]
             ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     result_message = update.message.reply_text(DogBreed, reply_markup=reply_markup)
-    print(result_message['message_id'])
+    os.system("touch "+filepath+"history")
+    historyfile = open(filepath+"history", 'a')
+
+    string = ""
+    for i in list(breedsdata.keys()):
+        string+=str(i)+" "
+    historyfile.write(str(result_message['message_id'])+" "+string+'\n')
+    print(result_message['message_id'], *list(breedsdata.keys()))
+    historyfile.close()
 
 def cancel(update, context):
     return ConversationHandler.END
 
 def show(update, context):
-    print(update['callback_query']['message']['message_id'])
+    histfile = open("user_data/"+str(update['callback_query']['message']['chat']['id'])+"/history", 'r')
+    lines = histfile.readlines()
+    for i in lines[::-1]:
+        if i.startswith(str(update['callback_query']['message']['message_id'])):
+            print(i)
+    histfile.close()
 
 def main():
     updater = Updater(config.TOKEN, use_context=True)
