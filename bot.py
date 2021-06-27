@@ -3,7 +3,7 @@ import logging
 import breed
 import config
 from time import time
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (Updater, CommandHandler, MessageHandler, ConversationHandler, Filters, CallbackQueryHandler)
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
@@ -24,6 +24,7 @@ def get_breed(breeds):
                      "Леонбергер", "Лхаса апсо", "Маламут", "Бельгийская овчарка", "Мальтийская болонка", "Ксолоитцкуинтли", "Карликовый пинчер", "Карликовый пудель", "Цвергшнауцер", "Ньюфаундленд", "Норфолк-терьер", "Норвежский элкхаунд", "Норвич-терьер", "Бобтейл", "Оттерхаунд", "Континентальный той-спаниель", "Пекинес", "Вельш-корги пемброк", "Померанский шпиц", "Мопс",
                      "Редбон кунхаунд", "Родезийский риджбек", "Ротвейлер", "Сенбернар", "Салюки", "Самоедская собака", "Шипперке",  "Скотч-терьер","Дирхаунд", "Силихем-терьер", "Шелти", "Ши-тцу", "Сибирский хаски",  "Австралийский шелковистый терьер", "Ирландский мягкошёрстный пшеничный терьер", "Стаффордширский бультерьер", "Пудель", "Миттельшнауцер",
                      "Суссекс-спаниель", "Тибетский мастиф", 'Тибетский терьер', 'Той-пудель', 'Русский той', 'Венгерская выжла', 'Древесная енотовая гончая Уолкера', 'Веймаранер', 'Вельш-спрингер-спаниель', 'Вест-хайленд-уайт-терьер', 'Уиппет', 'Жесткошёрстный фокстерьер', 'Йоркширский терьер']
+    print(map_characters[88])
     result = ""
     for i in list(breeds.keys()):
         result = result+map_characters[i]+" ("+ str(breeds[i])+"%)\n"
@@ -70,9 +71,20 @@ def cancel(update, context):
 def show(update, context):
     histfile = open("user_data/"+str(update['callback_query']['message']['chat']['id'])+"/history", 'r')
     lines = histfile.readlines()
+    breednumbers = []
     for i in lines[::-1]:
         if i.startswith(str(update['callback_query']['message']['message_id'])):
-            print(i)
+            breednumbers = list(map(int, i.split( )))[1:]
+
+    media_group = list()
+
+    for number in breednumbers:
+        try:
+            media_group.append(InputMediaPhoto(media=open("photos/"+str(number)+".jpg", 'rb')))
+        except:
+            pass
+    print(media_group)
+    update.effective_chat.send_media_group(media=media_group)
     histfile.close()
 
 def main():
