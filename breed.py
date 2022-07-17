@@ -22,5 +22,5 @@ def resolve(filename):
     y_pred_ids = output_data[0].argsort()[-5:][::-1]
     result = {}
     for i in range(len(y_pred_ids)):
-        result[int(y_pred_ids[i])] = round(output_data[0][y_pred_ids[i]]*100, 5)
+        result[int(y_pred_ids[i]+1)] = round(output_data[0][y_pred_ids[i]]*100, 5)
     return result
