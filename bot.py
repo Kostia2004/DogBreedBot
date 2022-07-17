@@ -30,11 +30,11 @@ def photo(update, context):
     user = update.message.from_user
     id = user.id
     print(user)
-    name = str(time())+ ".jpg"
+    name = f"{time()}.jpg"
     if not (str(id) in os.listdir(path="./user_data/")):
-        os.system("mkdir ./user_data/"+str(id))
-    filepath = "./user_data/" + str(id) + "/"
-    filename = "./user_data/" + str(id) + "/" + name
+        os.system(f"mkdir ./user_data/{id}")
+    filepath = f"./user_data/{id}/"
+    filename = f"./user_data/{id}/{name}"
 
     print("получение")
     largest_photo = update.message.photo[-1].get_file()
@@ -44,15 +44,19 @@ def photo(update, context):
 
     breedsdata = breed.resolve(filename)
     DogBreed = get_breed(breedsdata)
-    os.system('rm -rf '+filename)
+    os.system(f"rm -rf {filename}")
 
     keyboard = [
             [InlineKeyboardButton("Примеры пород", callback_data="/show"),]
             ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     result_message = update.message.reply_text(DogBreed, reply_markup=reply_markup)
-    os.system("touch "+filepath+"history")
-    historyfile = open(filepath+"history", 'a')
+###################### ВСПОМОГАТЕЛЬНЫЕ ДАННЫЕ #####################
+# информация для привязки сообщений к результатам для функции show
+## TODO: переделать чтобы работало с БД
+    histfilepath = os.path.join(filepath, 'history')
+    os.system(f"touch {histfilepath}")
+    historyfile = open(histfilepath, 'a')
 
     string = ""
     for i in list(breedsdata.keys()):
@@ -60,23 +64,26 @@ def photo(update, context):
     historyfile.write(str(result_message['message_id'])+" "+string+'\n')
     print(result_message['message_id'], *list(breedsdata.keys()))
     historyfile.close()
+###################### ВСПОМОГАТЕЛЬНЫЕ ДАННЫЕ #####################
 
 def cancel(update, context):
     return ConversationHandler.END
 
 def show(update, context):
-    histfile = open("user_data/"+str(update['callback_query']['message']['chat']['id'])+"/history", 'r')
+    message_id = update['callback_query']['message']['message_id']
+    chat_id = update['callback_query']['message']['chat']['id']
+    histfile = open(f"user_data/{chat_id}/history", 'r')
     lines = histfile.readlines()
     breednumbers = []
     for i in lines[::-1]:
-        if i.startswith(str(update['callback_query']['message']['message_id'])):
+        if i.startswith(str(message_id)):
             breednumbers = list(map(int, i.split( )))[1:]
 
     media_group = list()
 
     for number in breednumbers:
         try:
-            media_group.append(InputMediaPhoto(media=open("photos/"+str(number)+".jpg", 'rb')))
+            media_group.append(InputMediaPhoto(media=open(f"photos/{number}.jpg", 'rb')))
         except:
             pass
     print(media_group)
@@ -99,4 +106,6 @@ def main():
     updater.idle()
 
 if __name__ == "__main__":
+    if "user_data" not in os.listdir('./'):
+        os.mkdir("user_data")
     main()
