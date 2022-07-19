@@ -2,13 +2,14 @@ import os
 import logging
 import breed
 import config
-import sqlite3
+from DB import DataBase
 from time import time
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (Updater, CommandHandler, MessageHandler, ConversationHandler, Filters, CallbackQueryHandler)
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
+MainDB = DataBase()
 
 
 def start(update, context):
@@ -18,11 +19,7 @@ def error(update, context):
     logger.warning('update "%s" casused error "%s"', update, context.error)
 
 def get_breed(breeds_scores):
-    con = sqlite3.connect('breeds.db')
-    cur = con.cursor()
-    result = ""
-    cur.execute(f"SELECT * FROM breeds WHERE id IN {tuple(breeds_scores.keys())}")
-    breeds_names = dict(cur.fetchall())
+    breeds_names = MainDB.getBreedById(list(breeds_scores.keys()))
     result = "".join([breeds_names[breed_id]+" ("+ str(breeds_scores[breed_id])+"%)\n" for breed_id in list(breeds_scores.keys())])
     return result
 
