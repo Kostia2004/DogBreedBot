@@ -18,9 +18,9 @@ def start(update, context):
 def error(update, context):
     logger.warning('update "%s" casused error "%s"', update, context.error)
 
-def get_breed(breeds_scores):
+def get_response(breeds_scores):
     breeds_names = MainDB.getBreedById(list(breeds_scores.keys()))
-    result = "".join([breeds_names[breed_id]+" ("+ str(breeds_scores[breed_id])+"%)\n" for breed_id in list(breeds_scores.keys())])
+    result = "".join([breeds_names[breed_id+1]+" ("+ str(breeds_scores[breed_id]*100)+"%)\n" for breed_id in list(breeds_scores.keys())])
     return result
 
 def photo(update, context):
@@ -39,29 +39,19 @@ def photo(update, context):
     largest_photo.download(filename)
     print("завершено")
 
-    breedsdata = breed.resolve(filename)
-    DogBreed = get_breed(breedsdata)
+    NNresult = breed.resolve(filename)
+    breedsdata = dict(zip(NNresult.argsort()[-5:][::-1], NNresult[NNresult.argsort()[-5:][::-1]]))
+    response_text = get_response(breedsdata)
     os.system(f"rm -rf {filename}")
 
     keyboard = [
             [InlineKeyboardButton("Примеры пород", callback_data="/show"),]
             ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    result_message = update.message.reply_text(DogBreed, reply_markup=reply_markup)
-###################### ВСПОМОГАТЕЛЬНЫЕ ДАННЫЕ #####################
-# информация для привязки сообщений к результатам для функции show
-## TODO: переделать чтобы работало с БД
-    histfilepath = os.path.join(filepath, 'history')
-    os.system(f"touch {histfilepath}")
-    historyfile = open(histfilepath, 'a')
-
-    string = ""
-    for i in list(breedsdata.keys()):
-        string+=str(i)+" "
-    historyfile.write(str(result_message['message_id'])+" "+string+'\n')
-    print(result_message['message_id'], *list(breedsdata.keys()))
-    historyfile.close()
-###################### ВСПОМОГАТЕЛЬНЫЕ ДАННЫЕ #####################
+    result_message = update.message.reply_text(response_text, reply_markup=reply_markup)
+    MainDB.writeRequest(user_id=id, 
+                        message_id=result_message['message_id'],
+                        scores = list(NNresult))
 
 def cancel(update, context):
     return ConversationHandler.END

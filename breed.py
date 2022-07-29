@@ -19,8 +19,4 @@ def resolve(filename):
     interpreter.set_tensor(input_details[0]['index'], img_2)
     interpreter.invoke() #получение значений на нейронах выходного слоя
     output_data = interpreter.get_tensor(output_details[0]['index'])# получение результата
-    y_pred_ids = output_data[0].argsort()[-5:][::-1]
-    result = {}
-    for i in range(len(y_pred_ids)):
-        result[int(y_pred_ids[i]+1)] = round(output_data[0][y_pred_ids[i]]*100, 5)
-    return result
+    return output_data[0]
