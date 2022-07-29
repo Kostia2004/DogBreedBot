@@ -24,15 +24,8 @@ class DataBase:
         values.extend(scores)
         fields = ['message_id', 'user_id']
         fields.extend(["score"+str(i+1) for i in range(120)])
-        try:    
-            sql = f"INSERT INTO history{tuple(fields)} VALUES({('?,'*len(fields))[:-1]})"
-            print(sql)
-        except Exception as e:
-            print("sql", e)
-        try:
-            self.cursor.execute(sql, list(map(str, values)))
-        except Exception as e:
-            print("execute", e)
+        sql = f"INSERT INTO history{tuple(fields)} VALUES({('?,'*len(fields))[:-1]})"
+        self.cursor.execute(sql, list(map(str, values)))
         self.connection.commit()
         return 0
 
